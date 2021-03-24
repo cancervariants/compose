@@ -29,6 +29,10 @@ services:
       - "8001:80"
     depends_on:
       - "dynamodb"  
-
+  # A generic python instance to run tests
+  test:
+    build: test
+    hostname: test
+    container_name: test
 
       
