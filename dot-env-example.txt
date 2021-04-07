@@ -1,0 +1,6 @@
+RXNORM_API_KEY=my-key
+AWS_DEFAULT_REGION=dev
+AWS_ACCESS_KEY_ID=my-access-key
+AWS_SECRET_ACCESS_KEY=my-secret-key
+DRUGBANK_USER=user@example.com
+DRUGBANK_PWD=XXXX

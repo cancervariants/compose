@@ -23,6 +23,11 @@ git checkout issue-123
 cd ..
 ```
 
+### Configure
+
+All environmental variables necessary are maintained in a `.env` file you need to create in the project root folder.  This file is not maintained in git.  See `dot-env-example.txt`
+
+
 ### Launch
 
 ```
