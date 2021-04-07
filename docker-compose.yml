@@ -1,19 +1,32 @@
 version: '3'
 
 services:
-  # A local instance of dynamodb, which persists data between instances
+  # A local instance of dynamodb, based on sqlite which persists data between instances
+  # dynamodb:
+  #   image: amazon/dynamodb-local
+  #   hostname: dynamodb
+  #   container_name: dynamodb
+  #   ports:
+  #     # map port 8000 in the container to port 8000 in the host
+  #     - "8000:8000"
+  #   # tell dynamo to persist data  
+  #   command: -jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data/
+  #   # map a directory in the host OS to this container
+  #   volumes:
+  #    - ./data/dynamodb:/home/dynamodblocal/data
+  # Run scylladb in dynamodb mode to provide a performant local store. Save data to ./data/scylla
   dynamodb:
-    image: amazon/dynamodb-local
+    image: scylladb/scylla
     hostname: dynamodb
     container_name: dynamodb
     ports:
       # map port 8000 in the container to port 8000 in the host
       - "8000:8000"
-    # tell dynamo to persist data  
-    command: -jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data/
+    # tell scylla to run in dynamodb mode, see http://scylla.docs.scylladb.com/master/alternator/alternator.html#write-isolation-policies
+    command: --smp 1 --memory=750M --overprovisioned 1 --alternator-port=8000 --alternator-write-isolation=only_rmw_uses_lwt
     # map a directory in the host OS to this container
     volumes:
-     - ./data/dynamodb:/home/dynamodblocal/data      
+     - ./data/scylla:/var/lib/scylla  
   # The therapy service
   therapy:
     build: therapy-normalization
