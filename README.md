@@ -27,6 +27,15 @@ cd ..
 
 All environmental variables necessary are maintained in a `.env` file you need to create in the project root folder.  This file is not maintained in git.  See `dot-env-example.txt`
 
+You will need to clone services repositories.
+
+```
+git clone https://github.com/cancervariants/disease-normalization
+git clone https://github.com/cancervariants/gene-normalization
+git clone https://github.com/cancervariants/therapy-normalization
+git clone https://github.com/cancervariants/variant-normalization
+```
+
 
 ### Launch
 
@@ -89,14 +98,20 @@ ln -s  2020-11-27 latest
 #
 ```
 
+* Disease
+
+```
+
+dc exec disease sh -c "pipenv run python3 -m  disease.cli  --normalizer \"ncit mondo do oncotree\" --update_merged"
+```
+
 
 ### Test
 
 * Services should be up and running
 ```
 $docker-compose ps
-  Name                Command                  State                                                  Ports
-------------------------------------------------------------------------------------------------------------------------------------------------------
+disease    /bin/sh -c pipenv run uvic ...   Up (healthy)   0.0.0.0:8004->80/tcp
 dynamodb   /docker-entrypoint.py --sm ...   Up             10000/tcp, 22/tcp, 7000/tcp, 7001/tcp, 0.0.0.0:8000->8000/tcp, 9042/tcp, 9160/tcp, 9180/tcp
 gene       /bin/sh -c pipenv run uvic ...   Up (healthy)   0.0.0.0:8002->80/tcp
 test       /bin/sh -c tail -f /dev/null     Up
@@ -129,6 +144,7 @@ drwxr-xr-x   3 xxxx  yyyy    96 Mar 26 07:46 view_hints
 * Container /app/<package>/data is mapped to ./data in the host.  After running etl you can see the data dependencies
 ```
 du -sh ./data/*
+756M	./data/disease
 681M	./data/dynamodb
  14G	./data/gene
 1.5G	./data/scylla
@@ -143,12 +159,23 @@ du -sh ./data/*
 # simple smoke tests; [test_server_alive, test_swagger_ui, test_query] 
 docker-compose  exec test sh -c "pipenv run pytest  tests/integration"
 
+tests/integration/test_disease.py ...
 tests/integration/test_gene.py ...
 tests/integration/test_therapy.py ...
 tests/integration/test_variant.py ...
 
 ```
 
+### Backup scylladb
+
+```
+# see https://docs.scylladb.com/operating-scylla/procedures/backup-restore/backup/
+# save schema
+cqlsh -e "DESC SCHEMA;" > /var/lib/scylla/data/backup/db_schema.cql
+
+# backup keystores
+cqlsh --execute="DESCRIBE keyspaces;" | python3 -c "import sys;[print(f'nodetool snapshot  {keystore}') for keystore in sys.stdin.read().split() if 'system' not in keystore]; " | sh
+```
 
 ### Shutdown
 

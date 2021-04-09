@@ -88,6 +88,24 @@ services:
      # so we do not map a host directory to variant/data.
      # We do share seqrepo already harvested for gene
      - ./data/gene/seqrepo:/app/variant/data/seqrepo
+  # The disease service
+  disease:
+    build: disease-normalization
+    hostname: disease
+    container_name: disease
+    environment: 
+      - DISEASE_NORM_DB_URL=http://dynamodb:8000
+      # read from .env file
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-dev}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-foo}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-bar}
+    ports:
+      # map port 80 in the container to free port in the host
+      - "8004:80"
+    depends_on:
+      - "dynamodb"
+    volumes:
+     - ./data/disease:/app/disease/data     
   # A generic python instance to run tests
   test:
     build: test
