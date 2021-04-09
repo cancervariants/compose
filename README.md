@@ -72,9 +72,31 @@ Then harvest genes.
 
 ```
 dc exec gene sh -c "pipenv run python3 -m gene.cli --update_all"
-
 ```
 
+
+* Variant
+
+```
+#
+# Variant normalizer will read from variant/data/seqrepo/latest
+# so, in the host os, navigate to data/gene/seqrepo and `ln -s`
+#
+ln -s  2020-11-27 latest
+#
+# then, in docker compose, we map the seqrepo we setup for gene to the variant container
+# `- ./data/gene/seqrepo:/app/variant/data/seqrepo`
+#
+```
+
+You will need to populate ./data/variant with data dependencies, see the variant-normalizer README.
+
+```
+ls -1 ./data/variant/
+amino_acids.csv
+gene_symbols.txt
+transcript_mapping.tsv
+```
 
 
 ### Test
@@ -88,6 +110,7 @@ dynamodb   /docker-entrypoint.py --sm ...   Up             10000/tcp, 22/tcp, 70
 gene       /bin/sh -c pipenv run uvic ...   Up (healthy)   0.0.0.0:8002->80/tcp
 test       /bin/sh -c tail -f /dev/null     Up
 therapy    /bin/sh -c pipenv run uvic ...   Up (healthy)   0.0.0.0:8001->80/tcp
+variant    /bin/sh -c pipenv run uvic ...   Up (healthy)   0.0.0.0:8003->80/tcp
 ```
 
 
@@ -114,11 +137,12 @@ drwxr-xr-x   3 xxxx  yyyy    96 Mar 26 07:46 view_hints
 
 * Container /app/<package>/data is mapped to ./data in the host.  After running etl you can see the data dependencies
 ```
- du -sh ./data/*
+du -sh ./data/*
 681M	./data/dynamodb
  14G	./data/gene
 1.5G	./data/scylla
  20G	./data/therapy
+ 38M	./data/variant
 ```
 
 
@@ -130,7 +154,7 @@ docker-compose  exec test sh -c "pipenv run pytest  tests/integration"
 
 tests/integration/test_gene.py ...
 tests/integration/test_therapy.py ...
-
+tests/integration/test_variant.py ...
 
 ```
 
