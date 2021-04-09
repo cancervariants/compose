@@ -44,8 +44,28 @@ services:
     ports:
       # map port 80 in the container to port 8001 in the host
       - "8001:80"
+    volumes:
+     - ./data/therapy:/app/therapy/data          
     depends_on:
       - "dynamodb"  
+  # The gene service
+  gene:
+    build: gene-normalization
+    hostname: gene
+    container_name: gene
+    environment: 
+      - GENE_NORM_DB_URL=http://dynamodb:8000
+      # read from .env file
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-dev}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-foo}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-bar}
+    ports:
+      # map port 80 in the container to port 8002 in the host
+      - "8002:80"
+    depends_on:
+      - "dynamodb"
+    volumes:
+     - ./data/gene:/app/gene/data
   # A generic python instance to run tests
   test:
     build: test
