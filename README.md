@@ -89,15 +89,6 @@ ln -s  2020-11-27 latest
 #
 ```
 
-You will need to populate ./data/variant with data dependencies, see the variant-normalizer README.
-
-```
-ls -1 ./data/variant/
-amino_acids.csv
-gene_symbols.txt
-transcript_mapping.tsv
-```
-
 
 ### Test
 
