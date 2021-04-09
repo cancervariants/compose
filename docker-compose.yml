@@ -114,5 +114,10 @@ services:
     volumes:
     # map tests source so we can add/modify tests w/out needing to re-build
      - ./test/tests:/app/tests
+    depends_on:
+      - "disease"
+      - "variant"
+      - "gene"
+      - "therapy"
 
       

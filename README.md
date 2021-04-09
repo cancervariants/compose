@@ -2,9 +2,15 @@
 
 > Runs metakb services in containers using docker compose.
 
+## Overview
+
+![image](docker-compose.png)
+
+
 ## Installation
 
 You will need [docker-compose](https://docs.docker.com/compose/install/)
+
 
 ## Quickstart
 
@@ -176,6 +182,15 @@ cqlsh -e "DESC SCHEMA;" > /var/lib/scylla/data/backup/db_schema.cql
 # backup keystores
 cqlsh --execute="DESCRIBE keyspaces;" | python3 -c "import sys;[print(f'nodetool snapshot  {keystore}') for keystore in sys.stdin.read().split() if 'system' not in keystore]; " | sh
 ```
+
+### Generate documentation image
+
+Following command will create docker-compose.png
+
+```
+docker run --rm -it --name dcv -v $(pwd):/input pmsipilot/docker-compose-viz render -m image docker-compose.yml
+```
+
 
 ### Shutdown
 
