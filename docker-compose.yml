@@ -152,9 +152,9 @@ services:
     volumes:
      - ./metakb/metakb:/app/metakb
      - ./data/metakb:/app/metakb/data
-     # - ./data/gene/seqrepo:/app/variant/data/seqrepo
-     - ./data/gene/seqrepo:/root/.local/share/virtualenvs/app-4PlAip0Q/lib/python3.7/site-packages/variant/data/seqrepo
-     - ./disease/omim/mimTitles.txt:/root/.local/share/virtualenvs/app-4PlAip0Q/lib/python3.7/site-packages/disease/data/omim/data/omim/omim_20200409.tsv
+     - ./data/therapy:/app/therapy/data          
+     - ./data/gene:/app/gene/data
+     - ./data/disease:/app/disease/data
 
   # A generic python instance to run tests
   test:
