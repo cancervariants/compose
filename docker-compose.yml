@@ -1,0 +1,123 @@
+version: '3'
+
+services:
+  # A local instance of dynamodb, based on sqlite which persists data between instances
+  # dynamodb:
+  #   image: amazon/dynamodb-local
+  #   hostname: dynamodb
+  #   container_name: dynamodb
+  #   ports:
+  #     # map port 8000 in the container to port 8000 in the host
+  #     - "8000:8000"
+  #   # tell dynamo to persist data  
+  #   command: -jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data/
+  #   # map a directory in the host OS to this container
+  #   volumes:
+  #    - ./data/dynamodb:/home/dynamodblocal/data
+  # Run scylladb in dynamodb mode to provide a performant local store. Save data to ./data/scylla
+  dynamodb:
+    image: scylladb/scylla
+    hostname: dynamodb
+    container_name: dynamodb
+    ports:
+      # map port 8000 in the container to port 8000 in the host
+      - "8000:8000"
+    # tell scylla to run in dynamodb mode, see http://scylla.docs.scylladb.com/master/alternator/alternator.html#write-isolation-policies
+    command: --smp 1 --memory=750M --overprovisioned 1 --alternator-port=8000 --alternator-write-isolation=only_rmw_uses_lwt
+    # map a directory in the host OS to this container
+    volumes:
+     - ./data/scylla:/var/lib/scylla  
+  # The therapy service
+  therapy:
+    build: therapy-normalization
+    hostname: therapy
+    container_name: therapy
+    environment: 
+      - THERAPY_NORM_DB_URL=http://dynamodb:8000
+      # read from .env file
+      - RXNORM_API_KEY=${RXNORM_API_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-dev}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-foo}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-bar}
+      - DRUGBANK_USER=${DRUGBANK_USER}
+      - DRUGBANK_PWD=${DRUGBANK_PWD}
+    ports:
+      # map port 80 in the container to free port in the host
+      - "8001:80"
+    volumes:
+     - ./data/therapy:/app/therapy/data          
+    depends_on:
+      - "dynamodb"  
+  # The gene service
+  gene:
+    build: gene-normalization
+    hostname: gene
+    container_name: gene
+    environment: 
+      - GENE_NORM_DB_URL=http://dynamodb:8000
+      # read from .env file
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-dev}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-foo}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-bar}
+    ports:
+      # map port 80 in the container to free port in the host
+      - "8002:80"
+    depends_on:
+      - "dynamodb"
+    volumes:
+     - ./data/gene:/app/gene/data
+  # The variant service
+  variant:
+    build: variant-normalization
+    hostname: variant
+    container_name: variant
+    environment:
+      # variant shares gene's db 
+      - GENE_NORM_DB_URL=http://dynamodb:8000
+      # read from .env file
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-dev}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-foo}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-bar}
+    ports:
+      # map port 80 in the container to free port in the host
+      - "8003:80"
+    depends_on:
+      - "dynamodb"
+    volumes:
+     # The variant service has packaged data at variant/data,
+     # so we do not map a host directory to variant/data.
+     # We do share seqrepo already harvested for gene
+     - ./data/gene/seqrepo:/app/variant/data/seqrepo
+  # The disease service
+  disease:
+    build: disease-normalization
+    hostname: disease
+    container_name: disease
+    environment: 
+      - DISEASE_NORM_DB_URL=http://dynamodb:8000
+      # read from .env file
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-dev}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-foo}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-bar}
+    ports:
+      # map port 80 in the container to free port in the host
+      - "8004:80"
+    depends_on:
+      - "dynamodb"
+    volumes:
+     - ./data/disease:/app/disease/data     
+  # A generic python instance to run tests
+  test:
+    build: test
+    hostname: test
+    container_name: test
+    volumes:
+    # map tests source so we can add/modify tests w/out needing to re-build
+     - ./test/tests:/app/tests
+    depends_on:
+      - "disease"
+      - "variant"
+      - "gene"
+      - "therapy"
+
+      
