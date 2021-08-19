@@ -105,7 +105,57 @@ services:
     depends_on:
       - "dynamodb"
     volumes:
-     - ./data/disease:/app/disease/data     
+     - ./data/disease:/app/disease/data
+  # The neo4j service see https://github.com/grand-stack/grand-stack-starter
+  neo4j:
+    build: ./neo4j
+    # image: neo4j:4.2.5
+    volumes:
+      - ./data/neo4j:/data
+      # wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.2.5/apoc-4.2.5-all.jar
+      # - ./data/neo4j-plugins:/plugins
+    ports:
+      - 7474:7474
+      - 7687:7687
+    environment:
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
+      - NEO4J_apoc_import_file_enabled=true
+      - NEO4J_apoc_export_file_enabled=true
+      # - NEO4J_dbms_shell_enabled=true
+      - NEO4J_apoc_import_file_use__neo4j__config=true
+      - NEO4JLABS_PLUGINS=["apoc"]
+  # The metakb service
+  metakb:
+    build: metakb
+    hostname: metakb
+    container_name: metakb
+    environment: 
+      - GENE_NORM_DB_URL=http://dynamodb:8000
+      - THERAPY_NORM_DB_URL=http://dynamodb:8000
+      - DISEASE_NORM_DB_URL=http://dynamodb:8000
+      # read from .env file
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-dev}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-foo}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-bar}
+      - METAKB_DB_URL=bolt://neo4j:7687
+      - METAKB_DB_USERNAME=${METAKB_DB_USERNAME}
+      - METAKB_DB_PASSWORD=${METAKB_DB_PASSWORD}
+    ports:
+      # map port 80 in the container to free port in the host
+      - "8005:80"
+    depends_on:
+      - "neo4j"
+      - "disease"
+      - "variant"
+      - "gene"
+      - "therapy"      
+    volumes:
+     - ./metakb/metakb:/app/metakb
+     - ./data/metakb:/app/metakb/data
+     - ./data/therapy:/app/therapy/data          
+     - ./data/gene:/app/gene/data
+     - ./data/disease:/app/disease/data
+
   # A generic python instance to run tests
   test:
     build: test
