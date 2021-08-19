@@ -17,7 +17,7 @@ def test_swagger_ui():
 
 
 def test_query():
-    """Variant server should find `BRCA2`."""
+    """Variant server should find `BRAF V600E`."""
     url = "http://variant/variant/normalize?q=BRAF%20V600E"
     headers = {'accept': 'application/json'}
     response = requests.get(url, headers=headers)
