@@ -66,13 +66,13 @@ services:
       - "dynamodb"
     volumes:
      - ./data/gene:/app/gene/data
-  # The variant service
-  variant:
-    build: variant-normalization
-    hostname: variant
-    container_name: variant
+  # The variation service
+  variation:
+    build: variation-normalization
+    hostname: variation
+    container_name: variation
     environment:
-      # variant shares gene's db 
+      # variation shares gene's db 
       - GENE_NORM_DB_URL=http://dynamodb:8000
       # read from .env file
       - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-dev}
@@ -84,10 +84,10 @@ services:
     depends_on:
       - "dynamodb"
     volumes:
-     # The variant service has packaged data at variant/data,
-     # so we do not map a host directory to variant/data.
+     # The variation service has packaged data at variation/data,
+     # so we do not map a host directory to variation/data.
      # We do share seqrepo already harvested for gene
-     - ./data/gene/seqrepo:/app/variant/data/seqrepo
+     - ./data/gene/seqrepo:/app/variation/data/seqrepo
   # The disease service
   disease:
     build: disease-normalization
@@ -146,7 +146,7 @@ services:
     depends_on:
       - "neo4j"
       - "disease"
-      - "variant"
+      - "variation"
       - "gene"
       - "therapy"      
     volumes:
@@ -166,7 +166,7 @@ services:
      - ./test/tests:/app/tests
     depends_on:
       - "disease"
-      - "variant"
+      - "variation"
       - "gene"
       - "therapy"
 
