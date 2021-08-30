@@ -14,26 +14,8 @@ You will need [docker-compose](https://docs.docker.com/compose/install/)
 
 ## Quickstart
 
-### After cloning this repo, you will need to clone metakb services.
+After cloning this repo, you will need to clone metakb services.
 
-At this time, we only have one: `therapy-normalizer`
-
-```
-cd compose
-
-git clone https://github.com/cancervariants/therapy-normalization
-cd therapy-normalization
-# Dockerfile currently on this branch
-git checkout issue-123
-
-cd ..
-```
-
-### Configure
-
-All environmental variables necessary are maintained in a `.env` file you need to create in the project root folder.  This file is not maintained in git.  See `dot-env-example.txt`
-
-You will need to clone services repositories.
 
 ```
 git clone https://github.com/cancervariants/disease-normalization
@@ -42,6 +24,7 @@ git clone https://github.com/cancervariants/therapy-normalization
 git clone https://github.com/cancervariants/variant-normalization
 ```
 
+All environmental variables necessary are maintained in a `.env` file you need to create in the project root folder.  This file is not maintained in git.  See `dot-env-example.txt`
 
 ### Launch
 
