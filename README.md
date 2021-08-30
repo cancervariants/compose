@@ -14,38 +14,28 @@ You will need [docker-compose](https://docs.docker.com/compose/install/)
 
 ## Quickstart
 
-### After cloning this repo, you will need to clone metakb services.
+### Clone services
 
-At this time, we only have one: `therapy-normalizer`
+After cloning this repo, you will need to clone metakb services.
 
-```
-cd compose
-
-git clone https://github.com/cancervariants/therapy-normalization
-cd therapy-normalization
-# Dockerfile currently on this branch
-git checkout issue-123
-
-cd ..
-```
-
-### Configure
-
-All environmental variables necessary are maintained in a `.env` file you need to create in the project root folder.  This file is not maintained in git.  See `dot-env-example.txt`
-
-You will need to clone services repositories.
-
-```
+```bash
 git clone https://github.com/cancervariants/disease-normalization
 git clone https://github.com/cancervariants/gene-normalization
 git clone https://github.com/cancervariants/therapy-normalization
 git clone https://github.com/cancervariants/variant-normalization
 ```
 
+### Provide environment variables
+
+All environment variables necessary are maintained in a `.env` file you need to create in the project root folder. This file is not maintained in git.
+
+```bash
+cp dot-env-example.txt .env
+```
 
 ### Launch
 
-```
+```bash
 # build services
 docker-compose build
 
@@ -55,12 +45,12 @@ docker-compose up -d
 
 ### Data dependencies
 
-* Therapy
-```
+#### Therapy
+```bash
 dc exec therapy sh -c "pipenv run python3 -m therapy.cli --normalizer=\"rxnorm chemidplus ncit wikidata chembl\"  --update_merged "
 ```
 
-* Gene
+#### Gene
 
 We run seqrepo as a separate step outside of the gene normalizer container:
 
@@ -71,7 +61,7 @@ We run seqrepo as a separate step outside of the gene normalizer container:
   * https://github.com/cancervariants/gene-normalization#installation
 
 
-```
+```bash
 docker run --user $(id -u):$(id -g) -v $(pwd)/data/gene/seqrepo:/usr/local/share/seqrepo biocommons/seqrepo seqrepo pull -i 2020-11-27
 
 # at least on a mac, this step is necessary to rename rsync's temp dir
@@ -85,14 +75,14 @@ After running seqrepo, start the gene normalizer via `dc up -d gene`
 
 Then harvest genes.
 
-```
+```bash
 dc exec gene sh -c "pipenv run python3 -m gene.cli --update_all"
 ```
 
 
-* Variant
+#### Variant
 
-```
+```bash
 #
 # Variant normalizer will read from variant/data/seqrepo/latest
 # so, in the host os, navigate to data/gene/seqrepo and `ln -s`
@@ -102,12 +92,11 @@ ln -s  2020-11-27 latest
 # then, in docker compose, we map the seqrepo we setup for gene to the variant container
 # `- ./data/gene/seqrepo:/app/variant/data/seqrepo`
 #
-```
+```bash
 
-* Disease
+#### Disease
 
-```
-
+```bash
 dc exec disease sh -c "pipenv run python3 -m  disease.cli  --normalizer \"ncit mondo do oncotree\" --update_merged"
 ```
 
@@ -115,7 +104,7 @@ dc exec disease sh -c "pipenv run python3 -m  disease.cli  --normalizer \"ncit m
 ### Test
 
 * Services should be up and running
-```
+```bash
 $docker-compose ps
 disease    /bin/sh -c pipenv run uvic ...   Up (healthy)   0.0.0.0:8004->80/tcp
 dynamodb   /docker-entrypoint.py --sm ...   Up             10000/tcp, 22/tcp, 7000/tcp, 7001/tcp, 0.0.0.0:8000->8000/tcp, 9042/tcp, 9160/tcp, 9180/tcp
@@ -130,7 +119,7 @@ variant    /bin/sh -c pipenv run uvic ...   Up (healthy)   0.0.0.0:8003->80/tcp
 
 If using local dynamodb:
 
-```
+```bash
 ls -l data/dynamodb/shared-local-instance.db
 
 -rw-r--r--  1 xxxx  yyyy  24576 Mar 24 09:21 data/dynamodb/shared-local-instance.db
@@ -138,7 +127,7 @@ ls -l data/dynamodb/shared-local-instance.db
 
 If using scylladb:
 
-```
+```bash
 ls -l data/scylla/
 total 0
 drwxr-xr-x  34 xxxx  yyyy  1088 Apr  7 23:37 commitlog
@@ -148,7 +137,7 @@ drwxr-xr-x   3 xxxx  yyyy    96 Mar 26 07:46 view_hints
 ```
 
 * Container /app/<package>/data is mapped to ./data in the host.  After running etl you can see the data dependencies
-```
+```bash
 du -sh ./data/*
 756M	./data/disease
 681M	./data/dynamodb
@@ -161,7 +150,7 @@ du -sh ./data/*
 
 * You can run high level integration "smoke-tests"
 
-```
+```bash
 # simple smoke tests; [test_server_alive, test_swagger_ui, test_query] 
 docker-compose  exec test sh -c "pipenv run pytest  tests/integration"
 
@@ -174,7 +163,7 @@ tests/integration/test_variant.py ...
 
 ### Backup scylladb
 
-```
+```bash
 # see https://docs.scylladb.com/operating-scylla/procedures/backup-restore/backup/
 # save schema
 cqlsh -e "DESC SCHEMA;" > /var/lib/scylla/data/backup/db_schema.cql
@@ -187,14 +176,14 @@ cqlsh --execute="DESCRIBE keyspaces;" | python3 -c "import sys;[print(f'nodetool
 
 Following command will create docker-compose.png
 
-```
+```bash
 docker run --rm -it --name dcv -v $(pwd):/input pmsipilot/docker-compose-viz render -m image docker-compose.yml
 ```
 
 
 ### Shutdown
 
-```
+```bash
 docker-compose down
 
 # if you wish to remove any volumes
