@@ -39,7 +39,7 @@ You will need to clone services repositories.
 git clone https://github.com/cancervariants/disease-normalization
 git clone https://github.com/cancervariants/gene-normalization
 git clone https://github.com/cancervariants/therapy-normalization
-git clone https://github.com/cancervariants/variant-normalization
+git clone https://github.com/cancervariants/variation-normalization
 ```
 
 
@@ -90,17 +90,17 @@ dc exec gene sh -c "pipenv run python3 -m gene.cli --update_all"
 ```
 
 
-* Variant
+* Variation
 
 ```
 #
-# Variant normalizer will read from variant/data/seqrepo/latest
+# Variation normalizer will read from variation/data/seqrepo/latest
 # so, in the host os, navigate to data/gene/seqrepo and `ln -s`
 #
 ln -s  2020-11-27 latest
 #
-# then, in docker compose, we map the seqrepo we setup for gene to the variant container
-# `- ./data/gene/seqrepo:/app/variant/data/seqrepo`
+# then, in docker compose, we map the seqrepo we setup for gene to the variation container
+# `- ./data/gene/seqrepo:/app/variation/data/seqrepo`
 #
 ```
 
@@ -122,7 +122,7 @@ dynamodb   /docker-entrypoint.py --sm ...   Up             10000/tcp, 22/tcp, 70
 gene       /bin/sh -c pipenv run uvic ...   Up (healthy)   0.0.0.0:8002->80/tcp
 test       /bin/sh -c tail -f /dev/null     Up
 therapy    /bin/sh -c pipenv run uvic ...   Up (healthy)   0.0.0.0:8001->80/tcp
-variant    /bin/sh -c pipenv run uvic ...   Up (healthy)   0.0.0.0:8003->80/tcp
+variation    /bin/sh -c pipenv run uvic ...   Up (healthy)   0.0.0.0:8003->80/tcp
 ```
 
 
@@ -155,7 +155,7 @@ du -sh ./data/*
  14G	./data/gene
 1.5G	./data/scylla
  20G	./data/therapy
- 38M	./data/variant
+ 38M	./data/variation
 ```
 
 
@@ -168,7 +168,7 @@ docker-compose  exec test sh -c "pipenv run pytest  tests/integration"
 tests/integration/test_disease.py ...
 tests/integration/test_gene.py ...
 tests/integration/test_therapy.py ...
-tests/integration/test_variant.py ...
+tests/integration/test_variation.py ...
 
 ```
 

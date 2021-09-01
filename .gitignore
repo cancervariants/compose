@@ -168,6 +168,6 @@ data/
 # services
 therapy-normalization/
 gene-normalization/
-variant-normalization/
+variation-normalization/
 disease-normalization/
 metakb/
