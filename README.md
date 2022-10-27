@@ -46,7 +46,8 @@ git clone https://github.com/cancervariants/variant-normalization
 ### Launch
 
 ```
-# build services
+# Build Docker images for therapy, gene, variant, disease, Neo4j, metakb, 
+# and test services.
 docker-compose build
 
 # launch all services in the background
