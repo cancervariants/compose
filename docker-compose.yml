@@ -14,6 +14,7 @@ services:
   #   # map a directory in the host OS to this container
   #   volumes:
   #    - ./data/dynamodb:/home/dynamodblocal/data
+  
   # Run scylladb in dynamodb mode to provide a performant local store. Save data to ./data/scylla
   dynamodb:
     image: scylladb/scylla
@@ -27,147 +28,153 @@ services:
     # map a directory in the host OS to this container
     volumes:
      - ./data/scylla:/var/lib/scylla  
+  
   # The therapy service
   therapy:
-    build: therapy-normalization
+    build: ../normalizers/therapy
     hostname: therapy
     container_name: therapy
     environment: 
       - THERAPY_NORM_DB_URL=http://dynamodb:8000
-      # read from .env file
+
+      # Get values of all environment variables below from .env file.
       - RXNORM_API_KEY=${RXNORM_API_KEY}
+      - DATAVERSE_API_KEY=${DATAVERSE_API_KEY}
+
+      # If AWS credentials are not stored in environment variables in
+      # .env file, then set equal to "dev", "foo", "bar" in container.
       - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-dev}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-foo}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-bar}
-      - DRUGBANK_USER=${DRUGBANK_USER}
-      - DRUGBANK_PWD=${DRUGBANK_PWD}
+
     ports:
       # map port 80 in the container to free port in the host
       - "8001:80"
     volumes:
-     - ./data/therapy:/app/therapy/data          
+      - ./data/therapy:/app/therapy/data          
     depends_on:
       - "dynamodb"  
+  
   # The gene service
-  gene:
-    build: gene-normalization
-    hostname: gene
-    container_name: gene
-    environment: 
-      - GENE_NORM_DB_URL=http://dynamodb:8000
+  #  gene:
+  #    build: ../normalizers/gene
+  #  hostname: gene
+  #  container_name: gene
+  #  environment: 
+  #    - GENE_NORM_DB_URL=http://dynamodb:8000
       # read from .env file
-      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-dev}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-foo}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-bar}
-    ports:
+      #    - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-dev}
+      #    - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-foo}
+      #    - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-bar}
+      #  ports:
       # map port 80 in the container to free port in the host
-      - "8002:80"
-    depends_on:
-      - "dynamodb"
-    volumes:
-     - ./data/gene:/app/gene/data
+      #     - "8002:80"
+      #  depends_on:
+      #   - "dynamodb"
+      #  volumes:
+      #   - ./data/gene:/app/gene/data
   # The variant service
-  variant:
-    build: variant-normalization
-    hostname: variant
-    container_name: variant
-    environment:
+  #  variant:
+  #  build: ../normalizers/variant
+  #  hostname: variant
+  #  container_name: variant
+  #  environment:
       # variant shares gene's db 
-      - GENE_NORM_DB_URL=http://dynamodb:8000
+      #    - GENE_NORM_DB_URL=http://dynamodb:8000
       # read from .env file
-      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-dev}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-foo}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-bar}
-    ports:
+      #    - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-dev}
+      #    - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-foo}
+      #    - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-bar}
+      #  ports:
       # map port 80 in the container to free port in the host
-      - "8003:80"
-    depends_on:
-      - "dynamodb"
-    volumes:
+      #   - "8003:80"
+      #  depends_on:
+      #   - "dynamodb"
+      #  volumes:
      # The variant service has packaged data at variant/data,
      # so we do not map a host directory to variant/data.
      # We do share seqrepo already harvested for gene
-     - ./data/gene/seqrepo:/app/variant/data/seqrepo
+     #   - ./data/gene/seqrepo:/app/variant/data/seqrepo
   # The disease service
-  disease:
-    build: disease-normalization
-    hostname: disease
-    container_name: disease
-    environment: 
-      - DISEASE_NORM_DB_URL=http://dynamodb:8000
+  #  disease:
+  #   build: ../normalizers/disease
+  #   hostname: disease
+  #  container_name: disease
+  #  environment: 
+  #     - DISEASE_NORM_DB_URL=http://dynamodb:8000
       # read from .env file
-      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-dev}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-foo}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-bar}
-    ports:
+      #    - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-dev}
+      #    - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-foo}
+      #    - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-bar}
+      #   ports:
       # map port 80 in the container to free port in the host
-      - "8004:80"
-    depends_on:
-      - "dynamodb"
-    volumes:
-     - ./data/disease:/app/disease/data
+      #  - "8004:80"
+      #  depends_on:
+      #  - "dynamodb"
+      #  volumes:
+      #    - ./data/disease:/app/disease/data
   # The neo4j service see https://github.com/grand-stack/grand-stack-starter
-  neo4j:
-    build: ./neo4j
+  #  neo4j:
+  #   build: ./neo4j
     # image: neo4j:4.2.5
-    volumes:
-      - ./data/neo4j:/data
+    #   volumes:
+    #    - ./data/neo4j:/data
       # wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.2.5/apoc-4.2.5-all.jar
       # - ./data/neo4j-plugins:/plugins
-    ports:
-      - 7474:7474
-      - 7687:7687
-    environment:
-      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
-      - NEO4J_apoc_import_file_enabled=true
-      - NEO4J_apoc_export_file_enabled=true
+      #   ports:
+      #   - 7474:7474
+      #   - 7687:7687
+      #   environment:
+      #    - NEO4J_dbms_security_procedures_unrestricted=apoc.*
+      #   - NEO4J_apoc_import_file_enabled=true
+      #   - NEO4J_apoc_export_file_enabled=true
       # - NEO4J_dbms_shell_enabled=true
-      - NEO4J_apoc_import_file_use__neo4j__config=true
-      - NEO4JLABS_PLUGINS=["apoc"]
+      #   - NEO4J_apoc_import_file_use__neo4j__config=true
+      #   - NEO4JLABS_PLUGINS=["apoc"]
   # The metakb service
-  metakb:
-    build: metakb
-    hostname: metakb
-    container_name: metakb
-    environment: 
-      - GENE_NORM_DB_URL=http://dynamodb:8000
-      - THERAPY_NORM_DB_URL=http://dynamodb:8000
-      - DISEASE_NORM_DB_URL=http://dynamodb:8000
+  #  metakb:
+  #   build: ../metakb
+  #   hostname: metakb
+  #   container_name: metakb
+  #   environment: 
+  #     - GENE_NORM_DB_URL=http://dynamodb:8000
+  #    - THERAPY_NORM_DB_URL=http://dynamodb:8000
+  #    - DISEASE_NORM_DB_URL=http://dynamodb:8000
       # read from .env file
-      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-dev}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-foo}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-bar}
-      - METAKB_DB_URL=bolt://neo4j:7687
-      - METAKB_DB_USERNAME=${METAKB_DB_USERNAME}
-      - METAKB_DB_PASSWORD=${METAKB_DB_PASSWORD}
-    ports:
+      #     - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-dev}
+      #     - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-foo}
+      #    - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-bar}
+      #  - METAKB_DB_URL=bolt://neo4j:7687
+      #   - METAKB_DB_USERNAME=${METAKB_DB_USERNAME}
+      #   - METAKB_DB_PASSWORD=${METAKB_DB_PASSWORD}
+      #   ports:
       # map port 80 in the container to free port in the host
-      - "8005:80"
-    depends_on:
-      - "neo4j"
-      - "disease"
-      - "variant"
-      - "gene"
-      - "therapy"      
-    volumes:
-     - ./metakb/metakb:/app/metakb
-     - ./data/metakb:/app/metakb/data
-     - ./data/therapy:/app/therapy/data          
-     - ./data/gene:/app/gene/data
-     - ./data/disease:/app/disease/data
+      #   - "8005:80"
+      #  depends_on:
+      #   - "neo4j"
+      #   - "disease"
+      #   - "variant"
+      #   - "gene"
+      #  - "therapy"      
+      #   volumes:
+      #    - ./metakb/metakb:/app/metakb
+      #   - ./data/metakb:/app/metakb/data
+      #   - ./data/therapy:/app/therapy/data          
+      #   - ./data/gene:/app/gene/data
+      #   - ./data/disease:/app/disease/data
 
   # A generic python instance to run tests
-  test:
-    build: test
-    hostname: test
-    container_name: test
-    volumes:
+  #  test:
+  #  build: test
+  #  hostname: test
+  #  container_name: test
+  #  volumes:
     # map tests source so we can add/modify tests w/out needing to re-build
-     - ./test/tests:/app/tests
-    depends_on:
-      - "disease"
-      - "variant"
-      - "gene"
-      - "therapy"
+    #     - ./test/tests:/app/tests
+    #   depends_on:
+    #   - "disease"
+    #   - "variant"
+    #   - "gene"
+    #   - "therapy"
 
       

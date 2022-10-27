@@ -6,8 +6,10 @@ RXNORM_API_KEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 # Used during ETL of therapy normalizer.
 DATAVERSE_API_KEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 
-AWS_DEFAULT_REGION=dev
-AWS_ACCESS_KEY_ID=my-access-key
-AWS_SECRET_ACCESS_KEY=my-secret-key
+# AWS Identity and Access Management user security credentials.
+AWS_DEFAULT_REGION=xx-xxxx-x
+AWS_ACCESS_KEY_ID=xxxxxxxxxxxxxxxxxxxx
+AWS_SECRET_ACCESS_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
 METAKB_DB_USERNAME=XXX
 METAKB_DB_PASSWORD=XXX
