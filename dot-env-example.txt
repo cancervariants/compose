@@ -1,4 +1,11 @@
-RXNORM_API_KEY=my-key
+# RxNorm API Key.
+# Used during ETL of therapy normalizer.
+RXNORM_API_KEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+
+# Harvard Dataverse API key for HemOnc.org.
+# Used during ETL of therapy normalizer.
+DATAVERSE_API_KEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+
 AWS_DEFAULT_REGION=dev
 AWS_ACCESS_KEY_ID=my-access-key
 AWS_SECRET_ACCESS_KEY=my-secret-key
