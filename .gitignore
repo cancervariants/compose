@@ -148,7 +148,7 @@ pytest.ini
 
 # ignore data dir
 data/*
-therapy/data/
+!data/gene/seqrepo
 
 # IDE materials
 .idea/
