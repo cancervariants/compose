@@ -148,6 +148,8 @@ pytest.ini
 
 # ignore data dir
 data/*
+!data/gene
+data/gene/*
 !data/gene/seqrepo
 
 # IDE materials
@@ -161,9 +163,6 @@ dynamodb_local_latest/*
 # Build files
 Pipfile.lock
 pyproject.toml
-
-# local data
-data/
 
 # services
 therapy-normalization/
