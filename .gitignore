@@ -151,6 +151,9 @@ data/*
 !data/gene
 data/gene/*
 !data/gene/seqrepo
+!data/disease
+data/disease/*
+!data/disease/omim
 
 # IDE materials
 .idea/
