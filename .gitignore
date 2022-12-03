@@ -146,7 +146,9 @@ cython_debug/
 # allow pytest override with pytest.ini
 pytest.ini
 
-# ignore data dir
+# Ignore data directory and all subdirectories except for subdirectories
+# whose contents must be manually placed for the normalizer services to
+# work.
 data/*
 !data/gene
 data/gene/*
@@ -167,7 +169,8 @@ dynamodb_local_latest/*
 Pipfile.lock
 pyproject.toml
 
-# services
+# Ignore metakb and normalizer services as they are git repositories in 
+# the root of a git repository.
 therapy-normalization/
 gene-normalization/
 variant-normalization/
