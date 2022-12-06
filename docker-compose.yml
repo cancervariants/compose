@@ -27,33 +27,43 @@ services:
     command: --smp 1 --memory=750M --overprovisioned 1 --alternator-port=8000 --alternator-write-isolation=only_rmw_uses_lwt
     # map a directory in the host OS to this container
     volumes:
-     - ./data/scylla:/var/lib/scylla  
+      - ./data/scylla:/var/lib/scylla  
   
-  # The therapy service
-  therapy:
-    build: ../normalizers/therapy
-    hostname: therapy
-    container_name: therapy
-    environment: 
-      - THERAPY_NORM_DB_URL=http://dynamodb:8000
-
-      # Get values of all environment variables below from .env file.
-      - RXNORM_API_KEY=${RXNORM_API_KEY}
-      - DATAVERSE_API_KEY=${DATAVERSE_API_KEY}
-
-      # If AWS credentials are not stored in environment variables in
-      # .env file, then set equal to "dev", "foo", "bar" in container.
-      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-dev}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-foo}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-bar}
-
-    ports:
-      # map port 80 in the container to free port in the host
-      - "8001:80"
+  # Universal Transcript Archive (UTA) service 
+  uta:
+    build: ./uta
+    hostname: uta
+    container_name: uta 
     volumes:
-      - ./data/therapy:/app/therapy/data          
-    depends_on:
-      - "dynamodb"  
+      - ./data/uta:/var/run/postgresql
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+
+  # The therapy service
+  #  therapy:
+  #  build: ../normalizers/therapy
+  #  hostname: therapy
+  #  container_name: therapy
+  #  environment: 
+  #    - THERAPY_NORM_DB_URL=http://dynamodb:8000
+
+       #   # Get values of all environment variables below from .env file.
+       #    - RXNORM_API_KEY=${RXNORM_API_KEY}
+       #  - DATAVERSE_API_KEY=${DATAVERSE_API_KEY}
+
+       #   # If AWS credentials are not stored in environment variables in
+       #   # .env file, then set equal to "dev", "foo", "bar" in container.
+       #   - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-dev}
+       #  - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-foo}
+       #   - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-bar}
+
+       #  ports:
+       #   # map port 80 in the container to free port in the host
+       #   - "8001:80"
+       #   volumes:
+       #   - ./data/therapy:/app/therapy/data          
+       #   depends_on:
+       #  - "dynamodb"  
   
   # The gene service
   #  gene:
@@ -114,54 +124,100 @@ services:
       #  volumes:
       #    - ./data/disease:/app/disease/data
   # The neo4j service see https://github.com/grand-stack/grand-stack-starter
-  #  neo4j:
-  #   build: ./neo4j
-    # image: neo4j:4.2.5
-    #   volumes:
-    #    - ./data/neo4j:/data
-      # wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.2.5/apoc-4.2.5-all.jar
-      # - ./data/neo4j-plugins:/plugins
-      #   ports:
-      #   - 7474:7474
-      #   - 7687:7687
-      #   environment:
-      #    - NEO4J_dbms_security_procedures_unrestricted=apoc.*
-      #   - NEO4J_apoc_import_file_enabled=true
+  neo4j:
+    build: ./neo4j
+    hostname: neo4j
+    container_name: neo4j
+    volumes:
+      - ./data/neo4j:/data
+
+    # IMPORTANT: During production, remove NEO4JLABS_PLUGINS environment
+    # variable. Instead, copy APOC to a local folder, and supply it to
+    # the container via a bind mount.
+    # wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.2.5/apoc-4.2.5-all.jar
+    # - ./data/neo4j-plugins:/plugins
+    ports:
+      # Port 7474 is used for HTTP access to the Neo4j API.
+      - 7474:7474
+      # Port 7687 is used for Bolt access to the Neo4j API.
+      - 7687:7687
+    environment:
+      # Disable authentication for development purposes
+      - NEO4J_AUTH=none
+      # Configure APOC by setting options in $NEO4J_HOME/conf/apoc.conf
+      # via the following environment variables. 
+      # For a list of APOC config options, see here: https://neo4j.com/labs/apoc/4.0/config/
+      #
+      # Enable reading local files from disk
+      #    - NEO4J_apoc_import_file_enabled=true
+      # Enable writing local files to disk
       #   - NEO4J_apoc_export_file_enabled=true
-      # - NEO4J_dbms_shell_enabled=true
-      #   - NEO4J_apoc_import_file_use__neo4j__config=true
-      #   - NEO4JLABS_PLUGINS=["apoc"]
+      # Check whether file system access is allowed and possibly
+      # constrained to a specific directory by reading the two
+      # configuration parameters
+      # dbms.security.allow_csv_import_from_file_urls and
+      # dbms.directories.import, respectively.
+      #    - NEO4J_apoc_import_file_use__neo4j__config=true
+    # - NEO4J_dbms_shell_enabled=true
+      
+      # Allow for all APOC procedures to be available to all users. This
+      # updates accordingly in $NEO4J_HOME/conf/neo4j.conf.
+      #   - NEO4J_dbms_security_procedures_unrestricted=apoc.*
+
+      # Setting this envar causes APOC to be retrieved from GitHub and
+      # installed in the container. This envar should only be set during
+      # development. Do not use in production.
+      #    - NEO4JLABS_PLUGINS=["apoc"]
+
   # The metakb service
-  #  metakb:
-  #   build: ../metakb
-  #   hostname: metakb
-  #   container_name: metakb
-  #   environment: 
-  #     - GENE_NORM_DB_URL=http://dynamodb:8000
-  #    - THERAPY_NORM_DB_URL=http://dynamodb:8000
-  #    - DISEASE_NORM_DB_URL=http://dynamodb:8000
-      # read from .env file
-      #     - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-dev}
-      #     - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-foo}
-      #    - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-bar}
-      #  - METAKB_DB_URL=bolt://neo4j:7687
-      #   - METAKB_DB_USERNAME=${METAKB_DB_USERNAME}
-      #   - METAKB_DB_PASSWORD=${METAKB_DB_PASSWORD}
-      #   ports:
+  metakb:
+    build: ./metakb
+    hostname: metakb
+    container_name: metakb
+    tty: true
+    environment: 
+      # Environment variables for AWS credentials (read from .env file)
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-dev}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-foo}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-bar}
+
+      # Environment variable for Universal Transcript Archive (UTA)
+      # database (read UTA_USER, UTA_PASSWORD, UTA_PORT from .env file)
+      - UTA_DB_URL=postgresql://postgres:admin@uta:5432/uta/uta_20210129 
+      
+      # Environment variables for metakb service:
+      # METAKB_DB_URL stores neo4j Bolt URL so that metakb service can
+      # communicate with neo4j service per metakb CLI arguments: 
+      # https://github.com/cancervariants/metakb/blob/main/docs/cli/README.md 
+      - METAKB_DB_URL=bolt://neo4j:7687
+        # - METAKB_DB_USERNAME=${METAKB_DB_USERNAME}
+        # - METAKB_DB_PASSWORD=${METAKB_DB_PASSWORD}
+    
+    ports:
       # map port 80 in the container to free port in the host
-      #   - "8005:80"
-      #  depends_on:
-      #   - "neo4j"
-      #   - "disease"
-      #   - "variant"
-      #   - "gene"
-      #  - "therapy"      
-      #   volumes:
-      #    - ./metakb/metakb:/app/metakb
-      #   - ./data/metakb:/app/metakb/data
-      #   - ./data/therapy:/app/therapy/data          
-      #   - ./data/gene:/app/gene/data
-      #   - ./data/disease:/app/disease/data
+      - "8005:80"
+    
+    # depends_on instruction ensures daemon starts neo4j, disease, variant, 
+    # gene, and therapy services before metakb when "docker-compose up" is
+    # executed. It also ensures daemon stops services in dependency
+    # order when "docker-compose stop" is executed.
+    depends_on:
+      - "uta"
+      - "neo4j"
+    #  - "disease"
+    #  - "variant"
+    #  - "gene"
+    #  - "therapy"      
+    
+    volumes:
+      - ./data/gene:/app/gene/data
+      - ./data/disease:/app/disease/data
+      - ./venvs/disease/etl:/app/disease/etl
+    #  - ./metakb/metakb:/app/metakb
+    #  - ./data/metakb:/app/metakb/data
+    #  - ./data/therapy:/app/therapy/data          
+    #  - ./data/gene:/app/gene/data
+    #  - ./data/disease:/app/disease/data
 
   # A generic python instance to run tests
   #  test:
